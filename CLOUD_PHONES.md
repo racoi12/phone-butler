@@ -1,77 +1,108 @@
 # Cloud Phone Options
 
-Comparison of cloud Android services for running a 24/7 virtual phone.
+Comparison of cloud Android services for running a 24/7 virtual phone controlled by Phone Butler.
 
 ## Key Requirements
 
 - Always-on (24/7, not session-based)
 - Install arbitrary APKs (banking, WhatsApp, Uber, etc.)
-- ADB access or equivalent API
+- ADB access for automation
 - Pass SafetyNet/Play Integrity (for banking apps)
-- Affordable ($10-30/mo range)
+- Affordable ($5-30/mo range)
 
-## Comparison
+## Enterprise / Developer Cloud Android
 
-| Service | Type | 24/7 | APKs | ADB | SafetyNet | Price/mo | Notes |
-|---------|------|------|------|-----|-----------|----------|-------|
-| **Redfinger** | Cloud phone | Yes | Yes | No (own API) | Partial | $4-10 | Chinese service, popular in Asia, cheapest option, latency to MX servers |
-| **Genymotion Cloud** | Cloud emulator | Yes (SaaS) | Yes | Yes | No | $25+ | Best ADB support, runs on AWS/GCP/Azure, no SafetyNet |
-| **Corellium** | ARM virtual device | Yes | Yes | Yes | Maybe | $100+ | Enterprise-grade, real ARM, best compatibility, expensive |
-| **AWS Device Farm** | Real devices | No (sessions) | Yes | Yes | Yes | $0.17/min | Real phones but session-based, not 24/7 |
-| **BrowserStack** | Real devices | No (sessions) | Yes | Limited | Yes | $29+ | Testing focus, not designed for always-on |
-| **Appetize.io** | Browser emulator | Session | Limited | No | No | $40+ | Web-based, good for demos, not for real apps |
-| **Anbox Cloud** | Container | Yes | Yes | Yes | No | Self-host | Ubuntu-based, needs ARM server, no Google Play |
-| **Waydroid** | Container (Linux) | Yes | Yes | ADB-like | No | Free | Runs on Linux, needs Wayland, no SafetyNet |
-| **Android-x86 VM** | VM | Yes | Yes | Yes | No | Free | KVM/QEMU, x86 translation issues, no SafetyNet |
-| **Google Cloud Android** | Emulator | Session | Yes | Yes | No | $50+ | For CI/CD, not designed for always-on |
+| Service | Price/mo | APKs | ADB | 24/7 | SafetyNet | Notes |
+|---------|----------|------|-----|------|-----------|-------|
+| **Genymotion Cloud** | $25-100 | Yes | Yes | Yes | No | Best dev ADB support. AWS/GCP/Azure. |
+| **Corellium** | $99-300 | Yes | Yes + SSH | Yes | Sometimes | ARM-native VMs. Closest to real hardware. |
+| **Google Cloud Emulator** | $50-150 | Yes | Yes | Yes | No | GCE VM + emulator. No GPU, slow. |
+| **AWS Device Farm** | $0.17/min | Yes | Yes | No (150min max) | No | Testing only. $7,344/mo for 24/7. |
+| **BrowserStack** | $40-400 | Limited | No | No (2hr max) | Yes (real devices) | Real phones, session-based. |
+| **Appetize.io** | $40-200 | Yes | No | No (2hr max) | No | Browser-streamed emulator. |
+| **Anbox Cloud** | $50-100+ | Yes | Yes | Yes | No | LXD containers. Self-hostable. |
 
-## Best Options by Use Case
+## Consumer Cloud Phones (Asia-market)
 
-### For banking apps (needs SafetyNet)
-**Physical phone is the only reliable option.** A $100 Poco M6 plugged into a Raspberry Pi or always-on PC is the cheapest path. Cloud services that use emulators will fail SafetyNet checks.
+| Service | Price/mo | APKs | ADB | 24/7 | SafetyNet | Notes |
+|---------|----------|------|-----|------|-----------|-------|
+| **Redfinger** | $3-10 | Yes | No (proprietary) | Yes | Sometimes (ARM) | Cheapest. Servers in Asia/US/EU. Has Google Play. |
+| **NBCloud (Now.gg)** | $5-15 | Yes | No | Yes | Sometimes | Gaming-focused. Asia. |
+| **Huawei Cloud Phone** | $10-30 | Yes | Limited | Yes | No (HMS only) | ARM Kunpeng. China mainland. |
+| **Baidu Cloud Phone** | $5-20 | Yes | API available | Yes | No | China only. |
 
-### For non-sensitive apps (Uber, Rappi, Spotify, AliExpress)
-**Redfinger** ($4-10/mo) or **self-hosted Waydroid/Android-x86** (free) work well. These apps usually don't check for emulators.
+## Self-Hosted (Cheapest)
 
-### For WhatsApp
-**Physical phone with SIM card required.** WhatsApp verifies the phone number via SMS and checks device integrity. WhatsApp Web/API might be an alternative for messaging only.
+| Approach | Cost | ADB | 24/7 | SafetyNet | Notes |
+|----------|------|-----|------|-----------|-------|
+| **Redroid on ARM VPS** | $0-5/mo | Yes | Yes | No (Magisk possible) | **Best self-hosted option.** Docker-based Android. |
+| **Waydroid on Linux** | $5-20/mo | Yes | Yes | No | LXC container. Needs kernel binder support. |
+| **Android-x86 VM** | $5-20/mo | Yes | Yes | No | x86 translation issues. |
+| **Docker-Android (budtmo)** | $5-20/mo | Yes | Yes | No | Docker + noVNC. x86 only. |
+| **Cuttlefish** | $20-50/mo | Yes | Yes | No | Google's reference device. Needs 8GB+ RAM. |
 
-### Best hybrid approach
-- **Physical phone** ($100 one-time): Banking, WhatsApp, calls — things that need real hardware + SIM
-- **Cloud/VM** ($0-10/mo): Uber, Rappi, AliExpress, Spotify — things that don't need SafetyNet
+## Best Option: Redroid on Oracle ARM VM (FREE)
 
-## Self-Hosted Options (Cheapest)
+You already have an Oracle Cloud ARM VM (4 CPU, 24GB RAM). **Redroid runs Android 12 in Docker on ARM — full ADB, 24/7, $0 cost.**
 
-### Waydroid on VPS
-- Run Android in a Linux container on any VPS
-- Needs a VPS with KVM support (~$5-10/mo on Hetzner, OVH)
-- No Google Play Services (can sideload via MicroG)
-- No SafetyNet
-- Good for non-Google-dependent apps
+```bash
+# Run Android 12 on ARM in Docker
+docker run -d --name redroid \
+  --privileged \
+  -p 5555:5555 \
+  redroid/redroid:12.0.0-arm64 \
+  androidboot.redroid_gpu_mode=guest
 
-### Android-x86 in QEMU
-- Run full Android in a VM on your Oracle Cloud free tier ARM instance
-- x86 translation can cause app crashes
-- No SafetyNet
+# Connect via ADB (from laptop via Tailscale)
+adb connect <oracle-vm-tailscale-ip>:5555
 
-### Cuttlefish (Google's virtual device)
-- Official Google Android Virtual Device
-- Requires powerful server (8GB+ RAM)
-- ADB access built in
-- No SafetyNet but better compatibility than x86
+# Install apps
+adb install app.apk
 
-## Recommendation
+# Use mcp-android-adb tools directly
+# All tools work: screenshot, tap, swipe, launch_app, etc.
+```
 
-**For Phase 1-3 (notification monitoring, read-only actions):**
-Use your existing Moto G84 or a dedicated cheap phone. The always-on PC you already have is sufficient.
+**What works:** Uber, DiDi, Rappi, AliExpress, Spotify, Telegram, most non-banking apps.
 
-**For Phase 4-5 (full automation, disconnected days):**
-- **Budget option:** Raspberry Pi 4 + cheap Android phone (~$150 total, one-time)
-- **Cloud option:** Redfinger ($4-10/mo) for non-banking apps + physical phone for banking
-- **VPS option:** Hetzner ARM VPS ($5/mo) + Waydroid for non-banking apps
+**What doesn't work (without hacks):** Banking apps (Klar, BBVA) — they check Play Integrity. WhatsApp needs a phone number verification SMS.
+
+**Google Play:** Install via OpenGApps or MindTheGapps ARM64 package.
+
+## Play Integrity / SafetyNet Deep Dive
+
+Banking apps require device attestation. Here's what each level means:
+
+| Level | What | Who passes |
+|-------|------|-----------|
+| **MEETS_STRONG_INTEGRITY** | Locked bootloader, verified boot | Only real physical devices |
+| **MEETS_DEVICE_INTEGRITY** | Unlocked OK, no root | BrowserStack (real), Corellium (sometimes), Redfinger (sometimes) |
+| **MEETS_BASIC_INTEGRITY** | Can be rooted but not tampered | Some cloud phones with Magisk + Play Integrity Fix |
+
+**Mexican banking apps:** Klar and BBVA typically require at least MEETS_DEVICE_INTEGRITY. Workaround: Magisk + Zygisk + Play Integrity Fix module — works on some ARM cloud phones but it's a cat-and-mouse game with Google.
+
+## Recommendation: Hybrid Approach
+
+| Use Case | Solution | Cost |
+|----------|----------|------|
+| Non-banking apps (Uber, Rappi, AliExpress, Spotify, Telegram) | **Redroid on Oracle ARM VM** | Free |
+| Banking (Klar, BBVA) + WhatsApp | **Physical phone** (used Pixel/Poco, plugged in at home) | $50-100 one-time |
+| VoIP bridge | Twilio | ~$5/mo |
+| AI brain | Claude API | ~$3-5/mo |
+| **Total** | | **~$8-10/mo + $50-100 one-time** |
+
+## For WhatsApp Specifically
+
+WhatsApp doesn't require Play Integrity but needs SMS verification:
+- **Virtual numbers:** TextNow (free US), Google Voice ($0), Hushed (~$5/mo)
+- **Better option:** WhatsApp Business API for pure messaging automation
+- **Simplest:** Physical phone with real SIM — just leave it at home
 
 ## TODO
-- [ ] Test Redfinger with Mexican apps (Klar, BBVA, Rappi, Uber, DiDi)
-- [ ] Test Waydroid on Oracle Cloud ARM instance
-- [ ] Benchmark Cuttlefish on ARM VPS
-- [ ] Test which Mexican banking apps actually enforce SafetyNet
+
+- [ ] Test Redroid on Oracle ARM VM
+- [ ] Install Google Play on Redroid via MindTheGapps
+- [ ] Test Magisk + Play Integrity Fix on Redroid
+- [ ] Test which Mexican banking apps enforce which SafetyNet level
+- [ ] Test Redfinger with Mexican apps from a US/EU server
+- [ ] Benchmark Redroid resource usage on Oracle VM (already running other services)
