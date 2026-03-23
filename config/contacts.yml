@@ -1,0 +1,38 @@
+# Approved contacts for actions (transfers, messages, calls)
+# Only these contacts can be targeted by voice commands
+
+contacts:
+  mamá:
+    name: "Mamá"
+    whatsapp: true
+    klar_contact: true
+    bbva_contact: true
+    phone: "+52XXXXXXXXXX"
+
+  papá:
+    name: "Papá"
+    whatsapp: true
+    phone: "+52XXXXXXXXXX"
+
+  laura:
+    name: "Laura"
+    whatsapp: true
+    phone: "+52XXXXXXXXXX"
+
+# Saved locations for ride apps
+locations:
+  casa:
+    name: "Casa"
+    address: "..."  # fill in
+  trabajo:
+    name: "Trabajo"
+    address: "..."
+  mamá:
+    name: "Casa de Mamá"
+    address: "..."
+
+# Transfer limits (daily)
+limits:
+  max_transfer_amount: 5000   # MXN per transaction
+  max_daily_transfers: 3
+  require_confirmation: true   # always for financial actions

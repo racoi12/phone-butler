@@ -1,0 +1,33 @@
+# Playbook: Check Klar balance
+name: Check Klar Balance
+app: com.klar.android
+requires_confirmation: false
+description: Opens Klar app and reads the account balance
+
+steps:
+  - action: launch_app
+    app: com.klar.android
+
+  - action: wait
+    seconds: 4
+    description: "Klar may need biometric auth — ensure device is unlocked"
+
+  - action: screenshot
+    save_as: klar_home
+    description: "Capture home screen with balance"
+
+  - action: vision
+    image: klar_home
+    prompt: "Read the account balance shown on screen. Return just the amount in MXN."
+    extract: balance
+
+  - action: respond
+    message: "Your Klar balance is {balance}"
+
+  - action: press_key
+    key: home
+
+errors:
+  app_not_found: "Klar is not installed"
+  auth_required: "Klar requires biometric authentication — cannot proceed remotely"
+  timeout: "Klar took too long to load"

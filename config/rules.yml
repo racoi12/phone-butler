@@ -1,0 +1,57 @@
+# Notification classification rules
+# Urgency: critical, high, medium, low
+
+rules:
+  # CRITICAL — triggers VoIP call
+  critical:
+    - package: "com.google.android.dialer"
+      keywords: ["llamada perdida"]
+      from_contacts: ["Mamá", "Papá", "Laura"]
+    - package: "com.klar.android"
+      keywords: ["fraude", "bloqueada", "sospechosa", "seguridad"]
+    - package: "com.bbva.bbvanet"
+      keywords: ["fraude", "bloqueada", "alerta de seguridad"]
+    - keywords: ["emergencia", "urgente", "hospital", "accidente"]
+
+  # HIGH — immediate Telegram message
+  high:
+    - package: "com.whatsapp"
+      from_contacts: ["Mamá", "Papá", "Laura", "Trabajo"]
+    - package: "com.google.android.dialer"
+    - package: "com.klar.android"
+    - package: "com.bbva.bbvanet"
+    - package: "com.uber.ria"
+      keywords: ["llegó", "conductor"]
+    - package: "com.rappi"
+      keywords: ["entregado", "llegó", "en camino"]
+
+  # MEDIUM — batched digest every 30 min
+  medium:
+    - package: "com.whatsapp"
+    - package: "com.alibaba.aliexpresshd"
+      keywords: ["enviado", "entregado", "aduana"]
+    - package: "com.mercadolibre"
+
+  # LOW — ignored
+  low:
+    - package: "com.facebook.orca"
+    - package: "com.instagram.android"
+    - keywords: ["promoción", "descuento", "oferta", "gratis"]
+
+# Contacts considered "family" for critical escalation
+family_contacts:
+  - "Mamá"
+  - "Papá"
+  - "Laura"
+
+# Telegram delivery
+telegram:
+  bot_token: "${TELEGRAM_BOT_TOKEN}"
+  chat_id: "${TELEGRAM_CHAT_ID}"
+
+# Twilio for critical calls
+twilio:
+  account_sid: "${TWILIO_ACCOUNT_SID}"
+  auth_token: "${TWILIO_AUTH_TOKEN}"
+  from_number: "${TWILIO_PHONE_NUMBER}"
+  to_number: "${DUMB_PHONE_NUMBER}"      # your dumb phone number

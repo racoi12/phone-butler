@@ -1,0 +1,18 @@
+# Device registry — phones available for butler control
+devices:
+  motog84:
+    name: "Moto G84 5G"
+    serial: "ZT322JPLWK"
+    ip: "192.168.100.16"
+    role: primary           # primary phone for all actions
+    adb_port: 5555
+
+  # Cloud phone (when configured)
+  # cloud:
+  #   name: "Cloud Android"
+  #   ip: "cloud-phone.example.com"
+  #   role: secondary
+  #   adb_port: 5555
+
+# Default device for actions
+default_device: motog84

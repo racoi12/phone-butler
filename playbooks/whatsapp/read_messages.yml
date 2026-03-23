@@ -1,0 +1,31 @@
+# Playbook: Read unread WhatsApp messages
+name: Read WhatsApp Messages
+app: com.whatsapp
+requires_confirmation: false
+description: Opens WhatsApp and reads unread messages
+
+steps:
+  - action: launch_app
+    app: whatsapp
+
+  - action: wait
+    seconds: 3
+
+  - action: screenshot
+    save_as: whatsapp_home
+    description: "Capture chat list to see unread badges"
+
+  - action: ocr_or_dump
+    method: uiautomator
+    extract: unread_chats
+    description: "Parse UI for unread message indicators"
+
+  - action: respond
+    message: "WhatsApp unread messages: {unread_chats}"
+
+  - action: press_key
+    key: home
+
+errors:
+  app_not_found: "WhatsApp is not installed on this device"
+  not_logged_in: "WhatsApp needs to be set up first"
